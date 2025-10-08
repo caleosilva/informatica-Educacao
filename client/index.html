@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lupa Digital</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+        .container {
+            width: 100%;
+            max-width: 1400px;
+        }
+        
+        /* Tela de seleção inicial */
+        .selection-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .selection-screen h1 {
+            font-size: 4rem;
+            margin-bottom: 3rem;
+            font-weight: 700;
+        }
+        .device-buttons {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 50px;
+        }
+        .device-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 30px;
+            padding: 60px 80px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+            min-width: 350px;
+        }
+        .device-btn:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.6);
+        }
+        .device-btn .icon {
+            font-size: 8rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+        .device-btn .label {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            display: block;
+        }
+        
+        /* Tela de TV - Mostrar código */
+        .tv-screen {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .tv-screen h2 {
+            font-size: 3.5rem;
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+        .code-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 40px;
+            padding: 80px 60px;
+            margin: 60px auto;
+            max-width: 800px;
+            box-shadow: 0 20px 80px rgba(102, 126, 234, 0.5);
+        }
+        .code-display .code {
+            font-size: 12rem;
+            font-weight: 900;
+            letter-spacing: 30px;
+            margin: 40px 0;
+            text-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .code-display .instruction {
+            font-size: 2.5rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        .status-bar {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            margin-top: 50px;
+            font-size: 2rem;
+        }
+        .status-bar .icon {
+            font-size: 2.5rem;
+            margin-right: 15px;
+        }
+        
+        /* Tela de celular - Input de código */
+        .phone-screen {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .phone-screen h2 {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+        .phone-input-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .phone-icon-large {
+            font-size: 6rem;
+            margin-bottom: 30px;
+        }
+        .code-input {
+            background: rgba(255,255,255,0.1);
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            padding: 40px;
+            font-size: 4rem;
+            text-align: center;
+            color: white;
+            width: 100%;
+            letter-spacing: 15px;
+            font-weight: 700;
+            margin: 30px 0;
+        }
+        .code-input::placeholder {
+            color: rgba(255,255,255,0.4);
+        }
+        .code-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255,255,255,0.15);
+        }
+        .connect-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 40px 80px;
+            font-size: 2.5rem;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+        }
+        .connect-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(102, 126, 234, 0.6);
+        }
+        .connect-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Tela de vídeo */
+        .video-screen {
+            display: none;
+        }
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .video-controls {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+        }
+        .control-btn {
+            background: rgba(0,0,0,0.8);
+            border: 3px solid white;
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            font-size: 3rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .control-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1);
+        }
+        .control-btn.danger {
+            background: rgba(244, 67, 54, 0.9);
+            border-color: #f44336;
+        }
+        .control-btn.danger:hover {
+            background: rgba(244, 67, 54, 1);
+        }
+        
+        /* Botão voltar */
+        .back-btn {
+            position: fixed;
+            top: 40px;
+            left: 40px;
+            background: rgba(255,255,255,0.2);
+            border: 3px solid white;
+            border-radius: 20px;
+            padding: 20px 40px;
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            z-index: 1000;
+        }
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-5px);
+        }
+        
+        /* Loader */
+        .loader {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            border: 8px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin: 40px auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Mensagens */
+        .message {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 20px;
+            margin: 30px 0;
+            font-size: 1.8rem;
+            border-left: 6px solid #667eea;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Responsivo para mobile */
+        @media (max-width: 768px) {
+            .selection-screen h1 {
+                font-size: 2.5rem;
+            }
+            .device-btn {
+                padding: 40px 50px;
+                min-width: 250px;
+            }
+            .device-btn .icon {
+                font-size: 5rem;
+            }
+            .device-btn .label {
+                font-size: 1.8rem;
+            }
+            .code-display .code {
+                font-size: 6rem;
+                letter-spacing: 15px;
+            }
+            .code-display .instruction {
+                font-size: 1.8rem;
+            }
+            .code-input {
+                font-size: 3rem;
+                padding: 30px;
+            }
+            .connect-btn {
+                padding: 30px 50px;
+                font-size: 2rem;
+            }
+            .control-btn {
+                width: 80px;
+                height: 80px;
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Tela de Seleção Inicial -->
+        <div class="selection-screen" id="selectionScreen">
+            <h1>🔍 Lupa Digital</h1>
+            <div class="device-buttons">
+                <button class="device-btn" onclick="selectTV()">
+                    <span class="icon">📺</span>
+                    <span class="label">TV/Monitor</span>
+                </button>
+                <button class="device-btn" onclick="selectPhone()">
+                    <span class="icon">📱</span>
+                    <span class="label">Celular</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tela da TV -->
+        <div class="tv-screen" id="tvScreen">
+            <button class="back-btn" onclick="goBack()">← Voltar</button>
+            <h2>📺 Modo Monitor</h2>
+            <div class="code-display">
+                <div class="instruction">Digite este código no celular:</div>
+                <div class="code" id="tvCode">----</div>
+            </div>
+            <div class="status-bar">
+                <span class="icon" id="tvStatusIcon">⏳</span>
+                <span id="tvStatus">Aguardando conexão...</span>
+            </div>
+        </div>
+
+        <!-- Tela do Celular -->
+        <div class="phone-screen" id="phoneScreen">
+            <button class="back-btn" onclick="goBack()">← Voltar</button>
+            <h2>📱 Modo Celular</h2>
+            <div class="phone-input-container">
+                <div class="phone-icon-large">📷</div>
+                <div class="message">Digite o código exibido na TV</div>
+                <input 
+                    type="text" 
+                    class="code-input" 
+                    id="phoneCodeInput"
+                    placeholder="----"
+                    maxlength="4"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                >
+                <button class="connect-btn" id="connectBtn" onclick="connectToTV()">
+                    Conectar
+                </button>
+                <div id="phoneStatus" class="message hidden"></div>
+            </div>
+        </div>
+
+        <!-- Tela de Vídeo -->
+        <div class="video-screen" id="videoScreen">
+            <div class="video-container">
+                <video id="remoteVideo" autoplay playsinline></video>
+                <video id="localVideo" autoplay playsinline muted style="display: none;"></video>
+                
+                <div class="video-controls" id="videoControls">
+                    <button class="control-btn" id="startCameraBtn" onclick="startCamera()" title="Iniciar Câmera">
+                        📷
+                    </button>
+                    <button class="control-btn danger hidden" id="stopCameraBtn" onclick="stopCamera()" title="Parar Câmera">
+                        ⏹️
+                    </button>
+                    <button class="control-btn danger" onclick="disconnect()" title="Desconectar">
+                        ✖️
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <script>
+        const SIGNALING_SERVER = 'http://localhost:3000';
+        
+        let socket;
+        let peerConnection;
+        let localStream = null;
+        let remotePeerId;
+        let currentMode = null; // 'tv' ou 'phone'
+        let currentPin = null;
+
+        const iceServers = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' }
+            ]
+        };
+
+        // Conectar ao servidor
+        function connectToSignalingServer() {
+            socket = io(SIGNALING_SERVER);
+
+            socket.on('connect', () => {
+                console.log('Conectado ao servidor');
+            });
+
+            socket.on('joined-room', (data) => {
+                currentPin = data.pin;
+                
+                if (currentMode === 'tv') {
+                    document.getElementById('tvCode').textContent = currentPin;
+                }
+            });
+
+            socket.on('room-full', () => {
+                if (currentMode === 'phone') {
+                    showPhoneStatus('❌ Sala cheia! Tente outro código.', true);
+                }
+            });
+
+            socket.on('ready-to-connect', (data) => {
+                remotePeerId = data.remotePeerId;
+                
+                if (currentMode === 'tv') {
+                    document.getElementById('tvStatusIcon').textContent = '✅';
+                    document.getElementById('tvStatus').textContent = 'Celular conectado!';
+                } else if (currentMode === 'phone') {
+                    // Ir direto para tela de vídeo no celular
+                    document.getElementById('phoneScreen').style.display = 'none';
+                    document.getElementById('videoScreen').style.display = 'block';
+                    document.getElementById('videoControls').style.display = 'flex';
+                }
+                
+                initWebRTC(data.isInitiator);
+            });
+
+            socket.on('webrtc-offer', async (data) => {
+                remotePeerId = data.sender;
+                await initWebRTC(false);
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                socket.emit('webrtc-answer', {
+                    target: remotePeerId,
+                    answer: answer
+                });
+            });
+
+            socket.on('webrtc-answer', async (data) => {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+            });
+
+            socket.on('ice-candidate', async (data) => {
+                if (data.candidate && peerConnection) {
+                    try {
+                        await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                    } catch (error) {
+                        console.error('Erro ao adicionar ICE candidate:', error);
+                    }
+                }
+            });
+
+            socket.on('peer-disconnected', () => {
+                alert('O outro dispositivo desconectou.');
+                goBack();
+            });
+        }
+
+        // Selecionar modo TV
+        function selectTV() {
+            currentMode = 'tv';
+            document.getElementById('selectionScreen').classList.add('hidden');
+            document.getElementById('tvScreen').style.display = 'block';
+            
+            // Gerar código aleatório de 4 dígitos
+            const pin = Math.floor(1000 + Math.random() * 9000).toString();
+            document.getElementById('tvCode').textContent = pin;
+            
+            // Conectar e entrar na sala
+            if (!socket || !socket.connected) {
+                connectToSignalingServer();
+            }
+            
+            setTimeout(() => {
+                socket.emit('join-room', pin);
+            }, 500);
+        }
+
+        // Selecionar modo Celular
+        function selectPhone() {
+            currentMode = 'phone';
+            document.getElementById('selectionScreen').classList.add('hidden');
+            document.getElementById('phoneScreen').style.display = 'block';
+            
+            if (!socket || !socket.connected) {
+                connectToSignalingServer();
+            }
+            
+            // Focar no input
+            setTimeout(() => {
+                document.getElementById('phoneCodeInput').focus();
+            }, 300);
+        }
+
+        // Conectar ao código da TV
+        function connectToTV() {
+            const pin = document.getElementById('phoneCodeInput').value.trim();
+            
+            if (!pin || pin.length !== 4) {
+                showPhoneStatus('⚠️ Digite um código de 4 dígitos', true);
+                return;
+            }
+            
+            showPhoneStatus('🔄 Conectando...', false);
+            document.getElementById('connectBtn').disabled = true;
+            
+            socket.emit('join-room', pin);
+        }
+
+        // Inicializar WebRTC
+        async function initWebRTC(isOfferer) {
+            peerConnection = new RTCPeerConnection(iceServers);
+
+            peerConnection.ontrack = (event) => {
+                console.log('Stream remoto recebido!');
+                const remoteStream = event.streams[0];
+                
+                // Mostrar vídeo na TV
+                if (currentMode === 'tv') {
+                    document.getElementById('tvScreen').style.display = 'none';
+                    document.getElementById('videoScreen').style.display = 'block';
+                    document.getElementById('videoControls').style.display = 'none';
+                    document.getElementById('remoteVideo').srcObject = remoteStream;
+                }
+            };
+            
+            peerConnection.onconnectionstatechange = () => {
+                console.log('Connection state:', peerConnection.connectionState);
+                
+                // Quando conectado, iniciar câmera automaticamente no celular
+                if (peerConnection.connectionState === 'connected' && currentMode === 'phone' && !localStream) {
+                    setTimeout(() => {
+                        startCamera();
+                    }, 500);
+                }
+            };
+
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('ice-candidate', {
+                        target: remotePeerId,
+                        candidate: event.candidate
+                    });
+                }
+            };
+
+            if (isOfferer) {
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                socket.emit('webrtc-offer', {
+                    target: remotePeerId,
+                    offer: offer
+                });
+            }
+        }
+
+        // Iniciar câmera (modo celular)
+        async function startCamera() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 },
+                        facingMode: 'environment' // Câmera traseira no celular
+                    },
+                    audio: false
+                });
+                
+                document.getElementById('localVideo').srcObject = localStream;
+                
+                // Adicionar tracks ao peer connection
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                });
+
+                // Renegociar apenas se for o iniciador ou criar nova oferta
+                if (peerConnection.signalingState === 'stable') {
+                    const offer = await peerConnection.createOffer();
+                    await peerConnection.setLocalDescription(offer);
+                    socket.emit('webrtc-offer', {
+                        target: remotePeerId,
+                        offer: offer
+                    });
+                }
+                
+                document.getElementById('startCameraBtn').classList.add('hidden');
+                document.getElementById('stopCameraBtn').classList.remove('hidden');
+                
+            } catch (error) {
+                alert('Erro ao acessar a câmera: ' + error.message);
+                console.error('Erro:', error);
+            }
+        }
+
+        // Parar câmera
+        function stopCamera() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+                document.getElementById('localVideo').srcObject = null;
+                
+                document.getElementById('startCameraBtn').classList.remove('hidden');
+                document.getElementById('stopCameraBtn').classList.add('hidden');
+            }
+        }
+
+        // Desconectar
+        function disconnect() {
+            stopCamera();
+            
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+            
+            goBack();
+        }
+
+        // Voltar ao início
+        function goBack() {
+            stopCamera();
+            
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+            
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+            
+            document.getElementById('selectionScreen').classList.remove('hidden');
+            document.getElementById('tvScreen').style.display = 'none';
+            document.getElementById('phoneScreen').style.display = 'none';
+            document.getElementById('videoScreen').style.display = 'none';
+            
+            document.getElementById('phoneCodeInput').value = '';
+            document.getElementById('connectBtn').disabled = false;
+            document.getElementById('phoneStatus').classList.add('hidden');
+            
+            currentMode = null;
+            currentPin = null;
+        }
+
+        // Mostrar status no celular
+        function showPhoneStatus(message, isError) {
+            const statusEl = document.getElementById('phoneStatus');
+            statusEl.textContent = message;
+            statusEl.classList.remove('hidden');
+            statusEl.style.borderLeftColor = isError ? '#f44336' : '#667eea';
+        }
+
+        // Permitir Enter no input
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('phoneCodeInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') connectToTV();
+            });
+            
+            // Aceitar apenas números
+            document.getElementById('phoneCodeInput').addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            });
+        });
+
+        window.addEventListener('beforeunload', () => {
+            stopCamera();
+        });
+    </script>
+</body>
+</html>
