@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC Stream</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        video { background: #333; width: 100%; max-width: 600px; border: 1px solid #777; }
+        #videos { display: grid; gap: 20px; grid-template-columns: 1fr 1fr; }
+        button { font-size: 1.2rem; padding: 10px 15px; margin: 5px; }
+        @media (max-width: 600px) {
+            #videos { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <h1>WebRTC Stream Celular -> Monitor</h1>
+    <div>
+        <button id="startStream">1. Iniciar Stream (Celular)</button>
+        <button id="watchStream">2. Assistir Stream (PC/Monitor)</button>
+    </div>
+
+    <div id="videos">
+        <div>
+            <h3>Vídeo Local (Celular)</h3>
+            <video id="localVideo" autoplay playsinline muted></video>
+        </div>
+        <div>
+            <h3>Vídeo Remoto (PC)</h3>
+            <video id="remoteVideo" autoplay playsinline></video>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
