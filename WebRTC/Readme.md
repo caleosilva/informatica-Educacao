@@ -58,7 +58,7 @@ Em um **segundo terminal** (deixe o `server.js` rodando no primeiro), inicie o t
     ```
 2.  O `ngrok` exibirá uma tela de status. Procure pela linha **"Forwarding"** que começa com `httpsS`:
     ```
-    Forwarding      [https://tearily-sackclothed-bryce.ngrok-free.dev](https://tearily-sackclothed-bryce.ngrok-free.dev) -> http://localhost:3000
+    Forwarding      https://tearily-sackclothed-bryce.ngrok-free.dev -> http://localhost:3000
     ```
     Esta URL (`httpsS://...`) é o seu novo endereço público.
 
