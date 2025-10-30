@@ -28,7 +28,8 @@ startButton.onclick = async () => {
     const filterControls = document.getElementById('filter-controls');
     const btnNormal = document.getElementById('btnNormal');
     const btnContrast = document.getElementById('btnContrast');
-    const btnYellow = document.getElementById('btnYellow'); // <-- ADICIONADO
+    const btnYellow = document.getElementById('btnYellow');
+    const btnSharpen = document.getElementById('btnSharpen'); // <-- ADICIONADO
 
     // Define as restrições para pedir a câmera traseira
     const constraints = {
@@ -112,7 +113,7 @@ startButton.onclick = async () => {
         }
     } catch (e) { console.error("Erro no Zoom:", e); }
 
-    // --- LÓGICA DOS FILTROS (Com o Filtro Amarelo) ---
+    // --- LÓGICA DOS FILTROS (Com a simulação de Nitidez) ---
     filterControls.style.display = 'block';
 
     btnNormal.onclick = () => {
@@ -124,11 +125,15 @@ startButton.onclick = async () => {
         console.log("Filtro aplicado:", currentFilter); 
     };
     
-    // --- LÓGICA DO BOTÃO ADICIONADA ---
     btnYellow.onclick = () => {
-        // 'sepia(1)' aplica o tom amarelado
-        // 'contrast(1.7)' aumenta o contraste para manter a legibilidade
         currentFilter = 'sepia(1) contrast(1.7)';
+        console.log("Filtro aplicado:", currentFilter);
+    };
+
+    // --- LÓGICA DO BOTÃO ADICIONADA ---
+    btnSharpen.onclick = () => {
+        // Simulação de nitidez: aumenta o contraste e reduz levemente o brilho
+        currentFilter = 'contrast(1.5) brightness(0.95)';
         console.log("Filtro aplicado:", currentFilter);
     };
     // ----------------------------------
