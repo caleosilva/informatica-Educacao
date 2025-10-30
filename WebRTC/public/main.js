@@ -28,6 +28,7 @@ startButton.onclick = async () => {
     const filterControls = document.getElementById('filter-controls');
     const btnNormal = document.getElementById('btnNormal');
     const btnContrast = document.getElementById('btnContrast');
+    const btnYellow = document.getElementById('btnYellow'); // <-- ADICIONADO
 
     // Define as restrições para pedir a câmera traseira
     const constraints = {
@@ -111,20 +112,26 @@ startButton.onclick = async () => {
         }
     } catch (e) { console.error("Erro no Zoom:", e); }
 
-    // --- LÓGICA DOS FILTROS (Sem o Inverter) ---
+    // --- LÓGICA DOS FILTROS (Com o Filtro Amarelo) ---
     filterControls.style.display = 'block';
 
     btnNormal.onclick = () => {
         currentFilter = 'none';
-        // Note: a linha 'localVideo.style.filter' NÃO está aqui
         console.log("Filtro aplicado:", currentFilter); 
     };
     btnContrast.onclick = () => {
-        // Usando a sintaxe com números (compatibilidade)
         currentFilter = 'contrast(2) grayscale(1)';
-        // Note: a linha 'localVideo.style.filter' NÃO está aqui
         console.log("Filtro aplicado:", currentFilter); 
     };
+    
+    // --- LÓGICA DO BOTÃO ADICIONADA ---
+    btnYellow.onclick = () => {
+        // 'sepia(1)' aplica o tom amarelado
+        // 'contrast(1.7)' aumenta o contraste para manter a legibilidade
+        currentFilter = 'sepia(1) contrast(1.7)';
+        console.log("Filtro aplicado:", currentFilter);
+    };
+    // ----------------------------------
     
 };
 
@@ -147,7 +154,7 @@ socket.on('offer', async (offer) => {
         };
 
         peerConnection.ontrack = (event) => {
-            console.log('Recebendo trilha de vídeo!');
+            console.log('Recebindo trilha de vídeo!');
             remoteVideo.srcObject = event.streams[0];
         };
     }
@@ -170,7 +177,6 @@ socket.on('answer', async (answer) => {
 socket.on('ice-candidate', async (candidate) => {
     if (peerConnection && candidate) {
         try {
-            // CORREÇÃO DO ERRO DE DIGITAÇÃO:
             await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
         } catch (e) {
             console.error('Erro ao adicionar candidato ICE:', e);
