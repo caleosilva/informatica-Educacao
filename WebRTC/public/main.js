@@ -10,7 +10,6 @@ const configuration = {
 
 let peerConnection;
 let localStream;
-let currentFilter = 'none'; // Variável global para guardar o filtro
 
 // Elementos do HTML
 const startButton = document.getElementById('startStream');
@@ -29,7 +28,7 @@ startButton.onclick = async () => {
     const btnNormal = document.getElementById('btnNormal');
     const btnContrast = document.getElementById('btnContrast');
     const btnYellow = document.getElementById('btnYellow');
-    const btnSharpen = document.getElementById('btnSharpen'); // <-- ADICIONADO
+    const btnSharpen = document.getElementById('btnSharpen'); 
 
     // Define as restrições para pedir a câmera traseira
     const constraints = {
@@ -48,52 +47,34 @@ startButton.onclick = async () => {
     localVideo.srcObject = localStream;
     localVideo.play();
 
-    // --- LÓGICA DO CANVAS (O "INTERMEDIÁRIO") ---
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    // --- LÓGICA DO CANVAS FOI REMOVIDA ---
+    // (Isso remove o processamento do celular e o delay)
 
     const videoTrack = localStream.getVideoTracks()[0];
 
-    localVideo.onloadedmetadata = () => {
-        canvas.width = localVideo.videoWidth;
-        canvas.height = localVideo.videoHeight;
-        drawLoop();
+    // --- LÓGICA DE CONEXÃO (SIMPLIFICADA) ---
+    socket.emit('join', roomName);
+    peerConnection = new RTCPeerConnection(configuration);
 
-        // --- LÓGICA DE CONEXÃO ---
-        const canvasStream = canvas.captureStream();
-        canvasStream.addTrack(localStream.getAudioTracks()[0]);
+    // Envia o stream "cru" da câmera, sem canvas
+    localStream.getTracks().forEach(track => {
+        peerConnection.addTrack(track, localStream);
+    });
 
-        socket.emit('join', roomName);
-        peerConnection = new RTCPeerConnection(configuration);
-
-        canvasStream.getTracks().forEach(track => {
-            peerConnection.addTrack(track, canvasStream);
-        });
-
-        peerConnection.onicecandidate = (event) => {
-            if (event.candidate) {
-                socket.emit('ice-candidate', event.candidate, roomName);
-            }
-        };
-
-        peerConnection.createOffer()
-            .then(offer => peerConnection.setLocalDescription(offer))
-            .then(() => {
-                socket.emit('offer', peerConnection.localDescription, roomName);
-            });
+    peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+            socket.emit('ice-candidate', event.candidate, roomName);
+        }
     };
 
-    function drawLoop() {
-        if (!ctx) return;
-        
-        // Aplica o filtro atual ao contexto do canvas
-        ctx.filter = currentFilter; 
-        
-        ctx.drawImage(localVideo, 0, 0, canvas.width, canvas.height);
-        requestAnimationFrame(drawLoop);
-    }
+    peerConnection.createOffer()
+        .then(offer => peerConnection.setLocalDescription(offer))
+        .then(() => {
+            socket.emit('offer', peerConnection.localDescription, roomName);
+        });
 
-    // --- LÓGICA DOS CONTROLES (ZOOM E FILTRO) ---
+
+    // --- LÓGICA DOS CONTROLES (ZOOM) ---
     try {
         const capabilities = videoTrack.getCapabilities();
         console.log("CAPACIDADES DA CÂMERA:", capabilities); 
@@ -113,31 +94,25 @@ startButton.onclick = async () => {
         }
     } catch (e) { console.error("Erro no Zoom:", e); }
 
-    // --- LÓGICA DOS FILTROS (Com a simulação de Nitidez) ---
+    // --- LÓGICA DOS FILTROS (AGORA É UM CONTROLE REMOTO) ---
     filterControls.style.display = 'block';
 
     btnNormal.onclick = () => {
-        currentFilter = 'none';
-        console.log("Filtro aplicado:", currentFilter); 
+        console.log("Enviando comando: 'none'");
+        socket.emit('filter-change', 'none', roomName);
     };
     btnContrast.onclick = () => {
-        currentFilter = 'contrast(2) grayscale(1)';
-        console.log("Filtro aplicado:", currentFilter); 
+        console.log("Enviando comando: 'contrast'");
+        socket.emit('filter-change', 'contrast', roomName);
     };
-    
     btnYellow.onclick = () => {
-        currentFilter = 'sepia(1) contrast(1.7)';
-        console.log("Filtro aplicado:", currentFilter);
+        console.log("Enviando comando: 'yellow'");
+        socket.emit('filter-change', 'yellow', roomName);
     };
-
-    // --- LÓGICA DO BOTÃO ADICIONADA ---
     btnSharpen.onclick = () => {
-        // Simulação de nitidez: aumenta o contraste e reduz levemente o brilho
-        currentFilter = 'contrast(1.5) brightness(0.95)';
-        console.log("Filtro aplicado:", currentFilter);
+        console.log("Enviando comando: 'sharpen'");
+        socket.emit('filter-change', 'sharpen', roomName);
     };
-    // ----------------------------------
-    
 };
 
 // 2. Lógica do "PC/Monitor" (Quem assiste)
@@ -170,7 +145,6 @@ socket.on('offer', async (offer) => {
     socket.emit('answer', answer, roomName);
 });
 
-// Ouve por 'resposta' (O Celular recebe)
 socket.on('answer', async (answer) => {
     console.log('Recebendo resposta...');
     if (peerConnection) {
@@ -178,7 +152,6 @@ socket.on('answer', async (answer) => {
     }
 });
 
-// Ouve por 'candidatos ICE' (Ambos recebem)
 socket.on('ice-candidate', async (candidate) => {
     if (peerConnection && candidate) {
         try {
@@ -186,5 +159,24 @@ socket.on('ice-candidate', async (candidate) => {
         } catch (e) {
             console.error('Erro ao adicionar candidato ICE:', e);
         }
+    }
+});
+
+// ========================================================
+// 4. LÓGICA DE FILTRO (RECEPTOR)
+// O PC "ouve" o comando de filtro vindo do celular
+// ========================================================
+socket.on('filter-change', (filterName) => {
+    console.log(`Comando de filtro recebido: ${filterName}`);
+    
+    // Aplica o filtro CSS no vídeo remoto (PC)
+    if (filterName === 'contrast') {
+        remoteVideo.style.filter = 'contrast(2) grayscale(1)';
+    } else if (filterName === 'yellow') {
+        remoteVideo.style.filter = 'sepia(1) contrast(1.7)';
+    } else if (filterName === 'sharpen') {
+        remoteVideo.style.filter = 'contrast(1.5) brightness(0.95)';
+    } else if (filterName === 'none') {
+        remoteVideo.style.filter = 'none';
     }
 });
